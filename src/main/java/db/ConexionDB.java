@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class ConexionDB {
     // Cambia la URL a tu servidor local de SQL Server
-    private static final String URL = "jdbc:sqlserver://localhost:14033;database=T08_SistemaVentas;encrypt=false;sendStringParametersAsUnicode=false;characterEncoding=UTF-8;";
+    private static final String URL = "jdbc:sqlserver://localhost:14033;database=InventarioKardex;encrypt=false;sendStringParametersAsUnicode=false;characterEncoding=UTF-8;";
 
     // Usuario y contraseña para autenticarse
     private static final String USER = "sa";
