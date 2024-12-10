@@ -37,6 +37,68 @@ public class KardexService {
         return productoController.obtenerStockActual(productoID);
     }
 
+    public List<Kardex> buscarPorEstado(String estado) {
+        List<Kardex> movimientos = new ArrayList<>();
+        String query = "SELECT * FROM Kardex WHERE Estado = ?";
+
+        try (Connection connection = ConexionDB.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, estado);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Kardex movimiento = new Kardex();
+                    movimiento.setKardexID(rs.getInt("KardexID"));
+                    movimiento.setProductoID(rs.getInt("ProductoID"));
+                    movimiento.setFecha(rs.getDate("Fecha"));
+                    movimiento.setTipoMovimiento(rs.getString("TipoMovimiento"));
+                    movimiento.setCantidad(rs.getInt("Cantidad"));
+                    movimiento.setPrecioUnitario(rs.getDouble("PrecioUnitario"));
+                    movimiento.setStockInicial(rs.getInt("StockInicial"));
+                    movimiento.setStockFinal(rs.getInt("StockFinal"));
+                    movimiento.setEstado(rs.getString("Estado").charAt(0));
+                    movimientos.add(movimiento);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return movimientos;
+    }
+
+    public List<Kardex> buscarPorProductoYEstado(int productoID, String estado) {
+        List<Kardex> movimientos = new ArrayList<>();
+        String query = "SELECT * FROM Kardex WHERE ProductoID = ? AND Estado = ? ORDER BY Fecha";
+
+        try (Connection connection = ConexionDB.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, productoID);
+            stmt.setString(2, estado);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Kardex movimiento = new Kardex();
+                    movimiento.setKardexID(rs.getInt("KardexID"));
+                    movimiento.setProductoID(rs.getInt("ProductoID"));
+                    movimiento.setFecha(rs.getDate("Fecha"));
+                    movimiento.setTipoMovimiento(rs.getString("TipoMovimiento"));
+                    movimiento.setCantidad(rs.getInt("Cantidad"));
+                    movimiento.setPrecioUnitario(rs.getDouble("PrecioUnitario"));
+                    movimiento.setStockInicial(rs.getInt("StockInicial"));
+                    movimiento.setStockFinal(rs.getInt("StockFinal"));
+                    movimiento.setEstado(rs.getString("Estado").charAt(0));
+
+                    movimientos.add(movimiento);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return movimientos;
+    }
+
+
     public List<Kardex> buscarTodosActivos() {
         List<Kardex> movimientos = new ArrayList<>();
         String query = "SELECT * FROM Kardex WHERE Estado = 'A'";

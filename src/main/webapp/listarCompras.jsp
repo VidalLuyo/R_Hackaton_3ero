@@ -4,6 +4,7 @@
 <%@ page import="controller.ProductoController" %>
 <%@ page import="model.Productos" %>
 <%@ page import="service.KardexService" %>
+<%@ page import="java.util.Date" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="model.Kardex" %>
 
@@ -15,21 +16,29 @@
     // Obtener la lista de productos
     List<Productos> productos = productController.listarTodos();
 
-    // Obtener producto seleccionado y movimientos
+    // Obtener parámetros de búsqueda
     String productoID = request.getParameter("productoID");
+    String estado = request.getParameter("estado"); // 'A' o 'I'
+
     Productos productoSeleccionado = null;
     List<Kardex> compras = null;
 
+    // Lógica de búsqueda según el productoID y el estado
     if (productoID != null && !productoID.isEmpty()) {
-        // Si se selecciona un producto, obtener sus movimientos individuales
         productoSeleccionado = productController.obtenerProductoPorID(Integer.parseInt(productoID));
-        compras = kardexService.buscarComprasPorProductos(Integer.parseInt(productoID)); // Obtener todas las compras individuales
+
+        if (estado != null && (estado.equals("A") || estado.equals("I"))) {
+            compras = kardexService.buscarPorProductoYEstado(Integer.parseInt(productoID), estado);
+        } else {
+            compras = kardexService.buscarComprasPorProducto(Integer.parseInt(productoID));
+        }
+    } else if (estado != null && (estado.equals("A") || estado.equals("I"))) {
+        compras = kardexService.buscarPorEstado(estado);
     } else {
-        // Si no se selecciona un producto, obtener todos los movimientos activos
         compras = kardexService.buscarTodosActivos();
     }
 
-    // Formateador de fecha
+    // Formateador de fechas
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMMM-yyyy", new java.util.Locale("es", "ES"));
 %>
 <!DOCTYPE html>
@@ -59,16 +68,19 @@
         </div>
     </div>
 </nav>
+
 <div class="container mt-5">
+    <!-- Filtro por producto -->
     <div class="row">
-        <div class="col-md-6">
-            <h2>Compras</h2>
+        <div class="col-md-8">
             <form action="listarCompras.jsp" method="get">
                 <div class="mb-3">
                     <label for="productoID" class="form-label">Seleccionar Producto:</label>
-                    <select id="productoID" name="productoID" class="form-select" required>
+                    <select id="productoID" name="productoID" class="form-select">
+                        <option value="">Seleccione un producto</option>
                         <% for (Productos producto : productos) { %>
-                        <option value="<%= producto.getProductoID() %>" <%= (productoID != null && productoID.equals(String.valueOf(producto.getProductoID()))) ? "selected" : "" %>>
+                        <option value="<%= producto.getProductoID() %>"
+                                <%= (productoID != null && productoID.equals(String.valueOf(producto.getProductoID()))) ? "selected" : "" %>>
                             <%= producto.getNombre() %>
                         </option>
                         <% } %>
@@ -77,24 +89,27 @@
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
         </div>
-
-        <% if (productoSeleccionado != null) { %>
-        <div class="col-md-6">
-            <h4>Detalles del Producto</h4>
-            <table class="table table-bordered">
-                <tr>
-                    <th>Código:</th>
-                    <td><%= productoSeleccionado.getCodigoProducto() %></td>
-                </tr>
-                <tr>
-                    <th>Nombre:</th>
-                    <td><%= productoSeleccionado.getNombre() %></td>
-                </tr>
-            </table>
-        </div>
-        <% } %>
     </div>
 
+    <!-- Botones para listar activos/inactivos -->
+    <% if (productoID != null && !productoID.isEmpty()) { %>
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <form action="listarCompras.jsp" method="get" style="display: inline;">
+                <input type="hidden" name="productoID" value="<%= productoID %>">
+                <input type="hidden" name="estado" value="A">
+                <button type="submit" class="btn btn-success">Listar Activos</button>
+            </form>
+            <form action="listarCompras.jsp" method="get" style="display: inline;">
+                <input type="hidden" name="productoID" value="<%= productoID %>">
+                <input type="hidden" name="estado" value="I">
+                <button type="submit" class="btn btn-danger">Listar Inactivos</button>
+            </form>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- Tabla de resultados -->
     <% if (compras != null && !compras.isEmpty()) { %>
     <div class="row mt-4">
         <div class="col-12">
@@ -103,22 +118,22 @@
                 <thead>
                 <tr>
                     <th>Fecha Compra</th>
-                    <th>Cantidad Compra</th>
+                    <th>Cantidad</th>
                     <th>Precio Unitario</th>
-                    <th>Monto Compra</th>
+                    <th>Monto Total</th>
                     <th>Acciones</th>
                 </tr>
                 </thead>
                 <tbody>
                 <% for (Kardex compra : compras) {
                     String fechaCompraStr = dateFormat.format(compra.getFecha());
-                    double montoCompra = compra.getCantidad() * compra.getPrecioUnitario();
+                    double montoTotal = compra.getCantidad() * compra.getPrecioUnitario();
                 %>
                 <tr>
                     <td><%= fechaCompraStr %></td>
                     <td><%= compra.getCantidad() %></td>
                     <td><%= compra.getPrecioUnitario() %></td>
-                    <td><%= montoCompra %></td>
+                    <td><%= montoTotal %></td>
                     <td>
                         <form action="eliminarMovimiento" method="post" style="display: inline;">
                             <input type="hidden" name="kardexID" value="<%= compra.getKardexID() %>">
@@ -129,6 +144,12 @@
                 <% } %>
                 </tbody>
             </table>
+        </div>
+    </div>
+    <% } else { %>
+    <div class="row mt-4">
+        <div class="col-12">
+            <p class="text-center text-muted">No hay movimientos para mostrar.</p>
         </div>
     </div>
     <% } %>
