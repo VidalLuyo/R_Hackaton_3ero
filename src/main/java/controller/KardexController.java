@@ -34,7 +34,7 @@ public class KardexController {
     /* Listar todos los productos */
     public List<Map<String, Object>> listarTodosProductos() {
         List<Map<String, Object>> productos = new ArrayList<>();
-        String query = "SELECT ProductoID, Nombre FROM Productos";
+        String query = "SELECT ProductoID, Nombre FROM Productos WHERE Estado = 'A'";
 
         try (Connection connection = ConexionDB.getConnection();
              Statement stmt = connection.createStatement();

@@ -83,7 +83,7 @@
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link" href="index.jsp">Inicio</a></li>
                 <li class="nav-item"><a class="nav-link" href="movimientos.jsp">Movimientos</a></li>
-                <li class="nav-item"><a class="nav-link" href="productos.jsp">Productos</a></li>
+                <li class="nav-item"><a class="nav-link" href="ProductoList.jsp">Productos</a></li>
                 <li class="nav-item"><a class="nav-link" href="registroKardex.jsp">Registro de Compras o Ventas</a></li>
                 <li class="nav-item"><a class="nav-link" href="listarCompras.jsp">Listado compras</a></li>
             </ul>

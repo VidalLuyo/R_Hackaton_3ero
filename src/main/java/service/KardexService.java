@@ -66,6 +66,19 @@ public class KardexService {
         return movimientos;
     }
 
+    public boolean reactivarMovimiento(int kardexID) {
+        String query = "UPDATE Kardex SET Estado = 'A' WHERE KardexID = ?";
+        try (Connection connection = ConexionDB.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, kardexID);
+            return stmt.executeUpdate() > 0; // Devuelve true si se actualizó correctamente
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
     public List<Kardex> buscarPorProductoYEstado(int productoID, String estado) {
         List<Kardex> movimientos = new ArrayList<>();
         String query = "SELECT * FROM Kardex WHERE ProductoID = ? AND Estado = ? ORDER BY Fecha";
